@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Request Flow Simulator</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="control-panel" aria-label="Simulation controls">
+        <div class="control-panel-header">
+          <p class="eyebrow">Simulation controls</p>
+          <h2>Factors</h2>
+        </div>
+
+        <section class="control-section">
+          <div class="section-copy">
+            <h3>General Capacity</h3>
+            <p>These set the normal operating envelope: incoming traffic, fleet size, and the memory limit each container can tolerate.</p>
+          </div>
+          <div class="control-grid">
+            <label class="control">
+              <span>Traffic rate</span>
+              <span class="control-value"><output id="rateOutput">300</output> rps</span>
+              <input id="rateSlider" type="range" min="0" max="2000" step="100" value="300">
+            </label>
+
+            <label class="control">
+              <span>Web containers</span>
+              <span class="control-value"><output id="containerOutput">20</output></span>
+              <input id="containerSlider" type="range" min="5" max="40" step="1" value="20">
+            </label>
+
+            <label class="control">
+              <span>Container limit</span>
+              <span class="control-value"><output id="limitOutput">5.0</output> GiB</span>
+              <input id="limitSlider" type="range" min="1024" max="5120" step="512" value="5120">
+            </label>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <div class="section-copy">
+            <h3>Memory Pressure</h3>
+            <p>The in-memory cache path holds baseline process memory plus large per-request cache state.</p>
+          </div>
+          <div class="control-grid">
+            <label class="control">
+              <span>Memory per request</span>
+              <span class="control-value"><output id="memoryOutput">25</output> MiB</span>
+              <input id="memorySlider" type="range" min="3" max="25" step="1" value="25">
+            </label>
+
+            <label class="control" hidden>
+              <span>Baseline memory</span>
+              <span class="control-value"><output id="baselineMemoryOutput">800</output> MiB</span>
+              <input id="baselineMemorySlider" type="range" min="0" max="2048" step="25" value="800">
+              <input id="baselineMemoryInput" type="number" min="0" max="2048" step="25" value="800" inputmode="numeric">
+            </label>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <div class="section-copy">
+            <h3>Request Lifetime</h3>
+            <p>Longer downstream waits keep requests in memory longer.</p>
+          </div>
+          <div class="control-grid">
+            <label class="control" hidden>
+              <span>Endpoint baseline</span>
+              <span class="control-value"><output id="baselineOutput">250</output> ms</span>
+              <input id="baselineSlider" type="range" min="20" max="3000" step="10" value="250">
+              <input id="baselineInput" type="number" min="20" max="3000" step="10" value="250" inputmode="numeric">
+            </label>
+
+            <label class="control">
+              <span>Dependency latency</span>
+              <span class="control-value"><output id="dependencyOutput">100</output> ms</span>
+              <input id="dependencySlider" type="range" min="100" max="2000" step="100" value="100">
+            </label>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <div class="section-copy">
+            <h3>Traffic Shape</h3>
+            <p>Uneven routing concentrates work on fewer containers. This makes the same total traffic more dangerous even when fleet size is unchanged.</p>
+          </div>
+          <div class="control-grid">
+            <label class="control">
+              <span>Hot traffic share</span>
+              <span class="control-value"><output id="skewOutput">0</output>%</span>
+              <input id="skewSlider" type="range" min="0" max="100" step="1" value="0">
+            </label>
+
+            <label class="control" hidden>
+              <span>Hot containers</span>
+              <span class="control-value"><output id="hotCountOutput">1</output></span>
+              <input id="hotCountSlider" type="range" min="1" max="5" step="1" value="1">
+              <input id="hotCountInput" type="number" min="1" max="5" step="1" value="1" inputmode="numeric">
+            </label>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <div class="section-copy">
+            <h3>Failure Loop</h3>
+            <p>When a container dies, capacity drops and abandoned work retries into the remaining pool.</p>
+          </div>
+          <div class="control-grid">
+            <label class="control">
+              <span>Recovery delay</span>
+              <span class="control-value"><output id="restartDelayOutput">15</output> s</span>
+              <input id="restartDelaySlider" type="range" min="10" max="60" step="1" value="15">
+            </label>
+          </div>
+        </section>
+
+        <div class="control-panel-header">
+          <p class="eyebrow">Remediations</p>
+          <h2>Fixes</h2>
+        </div>
+
+        <section class="control-section">
+          <div class="section-copy">
+            <h3>Retry Deadline</h3>
+            <p>Bounds how long requests hold memory while waiting on the downstream dependency, reducing the in-flight request pileup.</p>
+          </div>
+          <label class="toggle-control">
+            <input id="retryFixEnabled" type="checkbox">
+            <span>Use fixed retry behavior</span>
+          </label>
+          <div class="control-grid">
+            <label class="control">
+              <span>Fixed dependency latency</span>
+              <span class="control-value"><output id="fixedDependencyOutput">400</output> ms</span>
+              <input id="fixedDependencySlider" type="range" min="100" max="400" step="50" value="400">
+            </label>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <div class="section-copy">
+            <h3>Concurrency Limit</h3>
+            <p>Rejects new requests once a container already has too much work in flight, preventing unbounded per-process buildup.</p>
+          </div>
+          <label class="toggle-control">
+            <input id="concurrencyLimitEnabled" type="checkbox">
+            <span>Limit per-container concurrency</span>
+          </label>
+          <div class="control-grid">
+            <label class="control">
+              <span>Max in flight</span>
+              <span class="control-value"><output id="concurrencyLimitOutput">100</output></span>
+              <input id="concurrencyLimitSlider" type="range" min="10" max="100" step="10" value="100">
+            </label>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <div class="section-copy">
+            <h3>Memory Shedding</h3>
+            <p>Rejects new requests before the process reaches its hard memory limit, turning a crash into intentional load shedding.</p>
+          </div>
+          <label class="toggle-control">
+            <input id="memorySheddingEnabled" type="checkbox">
+            <span>Shed under memory pressure</span>
+          </label>
+          <div class="control-grid">
+            <label class="control">
+              <span>Shed above memory</span>
+              <span class="control-value"><output id="memorySheddingThresholdOutput">80</output>%</span>
+              <input id="memorySheddingThresholdSlider" type="range" min="50" max="90" step="1" value="80">
+            </label>
+          </div>
+        </section>
+      </aside>
+
+      <section class="visual-area" aria-label="Request flow visualization">
+        <header class="top-bar">
+          <div class="title-block">
+            <p class="eyebrow">Request flow model</p>
+            <h1>Service Request Flow</h1>
+          </div>
+          <div class="header-actions" aria-label="Playback controls">
+            <label class="speed-control">
+              <span>Time scale</span>
+              <span class="control-value"><output id="speedOutput">1.0</output>x</span>
+              <input id="speedSlider" type="range" min="0.1" max="1" step="0.1" value="1">
+            </label>
+
+            <div class="button-row">
+              <button id="pauseButton" type="button" title="Pause or resume the simulation">Pause</button>
+              <button id="resetButton" type="button" title="Clear active requests and restart">Reset</button>
+            </div>
+          </div>
+        </header>
+
+        <section class="simulation-panel" aria-label="Request flow simulation">
+          <canvas id="simulationCanvas">
+            Requests flow through web containers.
+          </canvas>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
