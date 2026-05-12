@@ -11,6 +11,10 @@
   --amber: #ff8a00;
   --red: #ff5d6c;
   --violet: #a174ff;
+  --range-fill: #38a2ff;
+  --range-track: #dbe8ee;
+  --range-track-border: #c9d8df;
+  --range-thumb: #ffffff;
   --shadow: 0 12px 32px rgba(34, 65, 82, 0.12);
 }
 
@@ -233,9 +237,77 @@ p {
 
 .control input[type="range"],
 .speed-control input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
   grid-column: 1 / -1;
   width: 100%;
-  accent-color: var(--blue);
+  height: 22px;
+  margin: 0;
+  background: transparent;
+  accent-color: var(--range-fill);
+}
+
+.control input[type="range"]::-webkit-slider-runnable-track,
+.speed-control input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  border: 1px solid var(--range-track-border);
+  border-radius: 999px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--range-fill) 0%,
+      var(--range-fill) var(--range-progress, 0%),
+      var(--range-track) var(--range-progress, 0%),
+      var(--range-track) 100%
+    );
+}
+
+.control input[type="range"]::-webkit-slider-thumb,
+.speed-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -6px;
+  border: 2px solid var(--range-fill);
+  border-radius: 50%;
+  background: var(--range-thumb);
+  box-shadow: 0 2px 6px rgba(34, 65, 82, 0.16);
+}
+
+.control input[type="range"]::-moz-range-track,
+.speed-control input[type="range"]::-moz-range-track {
+  height: 8px;
+  border: 1px solid var(--range-track-border);
+  border-radius: 999px;
+  background: var(--range-track);
+}
+
+.control input[type="range"]::-moz-range-progress,
+.speed-control input[type="range"]::-moz-range-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--range-fill);
+}
+
+.control input[type="range"]::-moz-range-thumb,
+.speed-control input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--range-fill);
+  border-radius: 50%;
+  background: var(--range-thumb);
+  box-shadow: 0 2px 6px rgba(34, 65, 82, 0.16);
+}
+
+.control input[type="range"]:hover::-webkit-slider-thumb,
+.speed-control input[type="range"]:hover::-webkit-slider-thumb {
+  border-color: #168be7;
+}
+
+.control input[type="range"]:hover::-moz-range-thumb,
+.speed-control input[type="range"]:hover::-moz-range-thumb {
+  border-color: #168be7;
 }
 
 .control input[type="number"] {

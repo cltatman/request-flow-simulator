@@ -15,7 +15,7 @@
   };
 
   const controlDefs = {
-    rate: { min: 0, max: 2000, step: 100, value: 300, decimals: 0 },
+    rate: { min: 0, max: 2000, step: 100, value: 400, decimals: 0 },
     containers: { min: 5, max: 40, step: 1, value: 20, decimals: 0 },
     baseline: { min: 20, max: 3000, step: 10, value: 250, decimals: 0 },
     dependency: { min: 100, max: 2000, step: 100, value: 100, decimals: 0 },
@@ -96,7 +96,7 @@
   };
 
   const state = {
-    rate: 300,
+    rate: 400,
     containers: 20,
     baseline: 250,
     dependency: 100,
@@ -202,6 +202,17 @@
       return formatNumber(value / def.displayScale, def.decimals);
     }
     return formatNumber(value, def.decimals);
+  }
+
+  function updateRangeProgress(slider) {
+    if (!slider) {
+      return;
+    }
+    const min = Number(slider.min);
+    const max = Number(slider.max);
+    const value = Number(slider.value);
+    const progress = max > min ? ((value - min) / (max - min)) * 100 : 0;
+    slider.style.setProperty("--range-progress", `${clamp(progress, 0, 100)}%`);
   }
 
   function ensureHealth() {
@@ -352,6 +363,7 @@
     refs.slider.max = String(max);
     refs.slider.step = String(def.step);
     refs.slider.value = String(value);
+    updateRangeProgress(refs.slider);
     if (refs.input) {
       refs.input.min = String(def.min);
       refs.input.max = String(max);
@@ -381,6 +393,7 @@
     state.speed = value;
     elements.speedSlider.value = String(value);
     elements.speedOutput.textContent = value.toFixed(1);
+    updateRangeProgress(elements.speedSlider);
   }
 
   function syncToggle(name, checked) {
